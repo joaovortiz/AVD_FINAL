@@ -21,7 +21,7 @@ module.exports = {
     return res.status(200).json(medico)
   },
 
-  // gravar os medicoes
+  // gravar os medicos
   async store(req, res) {
     try {
       let medico = await Medico.create(req.body)

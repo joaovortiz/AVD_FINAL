@@ -2,6 +2,7 @@ const Ppp = require('../models/ppps')
 const Exame = require('../models/Exames')
 const Agente = require('../models/Agentes')
 const Medico = require('../models/Medicos')
+const Funcionario = require('../models/Funcionarios')
 const sharp = require('sharp')
 const path = require('path')
 const fs = require('fs')
@@ -25,13 +26,6 @@ module.exports = {
     sort = sort ? sort : 'createdAt'
     termo = termo ? termo : ''
     const ppp = await Ppp.paginate(search, { page , limit: 5, sort: `-${sort}`});
-    return res.json(ppp)
-  },
-  
-  // Retoma ppp requisitado
-  async show(req, res) {
-    const { id = null } = req.params;
-    const ppp = await Ppp.findById(id);
     let array = []
 
     const someFunction = (myArray) => {
@@ -40,6 +34,8 @@ module.exports = {
         const exame = await Exame.paginate({_id: o.exame_id});
         const agente = await Agente.paginate({_id: o.agente_id});
         const medico = await Medico.paginate({_id: o.medico_id});
+        let data = new Date(o.createdAt);
+        let dataFormatada = ((data.getDate() )) + "/" + ((data.getMonth() + 1)) + "/" + data.getFullYear(); 
         return {
           _id: o._id,
           funcionario_id: o.funcionario_id,
@@ -51,7 +47,7 @@ module.exports = {
           medico_id: o.medico_id,
           medico: medico.docs[0],
           descricao: o.descricao,
-          createdAt: o.createdAt,
+          createdAt: dataFormatada,
           updatedAt: o.updatedAt,
           __v: o.__v
         }
@@ -61,6 +57,34 @@ module.exports = {
 
     array = await someFunction(ppp.docs)
     ppp.docs = array
+    return res.json(ppp)
+  },
+  
+  // Retoma ppp requisitado
+  async show(req, res) {
+    const { id = null } = req.params;
+    const o = await Ppp.findById(id);
+
+    const funcionario = await Funcionario.paginate({_id: o.funcionario_id});
+    const exame = await Exame.paginate({_id: o.exame_id});
+    const agente = await Agente.paginate({_id: o.agente_id});
+    const medico = await Medico.paginate({_id: o.medico_id});
+    ppp = {
+      _id: o._id,
+      funcionario_id: o.funcionario_id,
+      funcionario: funcionario.docs[0],
+      exame_id: o.exame_id,
+      exame: exame.docs[0],
+      agente_id: o.agente_id,
+      agente: agente.docs[0],
+      medico_id: o.medico_id,
+      medico: medico.docs[0],
+      descricao: o.descricao,
+      createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
+      __v: o.__v
+    }
+
     return res.status(200).json(ppp)
   },
 
@@ -70,22 +94,22 @@ module.exports = {
       let ppp = await Ppp.create(req.body)
       const id = ppp._id
       delete ppp._id
-      const { filename: image} = req.file
-      const [name, ext] = image.split('.')
-      const fileName = `${name}_${id}.jpg`
+      // const { filename: image} = req.file
+      // const [name, ext] = image.split('.')
+      // const fileName = `${name}_${id}.jpg`
 
-      await sharp(req.file.path)
-        .resize(500)
-        .jpeg({ quality: 70})
-        .toFile(
-          path.resolve(req.file.destination, 
-            'resizes', fileName)
-        )
-      fs.unlinkSync(req.file.path)
+      // await sharp(req.file.path)
+      //   .resize(500)
+      //   .jpeg({ quality: 70})
+      //   .toFile(
+      //     path.resolve(req.file.destination, 
+      //       'resizes', fileName)
+      //   )
+      // fs.unlinkSync(req.file.path)
 
-      //req.io.emit('ppp', ppp)
+      // //req.io.emit('ppp', ppp)
 
-      ppp.image = fileName
+      // ppp.image = fileName
 
       await Ppp.findByIdAndUpdate( { _id: id }, ppp )
 

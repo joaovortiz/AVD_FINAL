@@ -1,19 +1,9 @@
 export interface Exame {
     _id: string;
-    doutor_id: string;
-    paciente_id: string;
-    data: string;
-    hora: string;
-    doutor: {
-        nome: string;
-       
-    };
-    Funcionario: {
-        nome: string;
-    };
+    nome: string;
 }
 
-export interface Doutor {
+export interface Medico {
     _id: string;
     nome: string;
     
@@ -23,11 +13,31 @@ export interface Funcionario {
     _id: string;
     nome: string;
 }
-export interface PPP {
-  funcionario_id: String,
-  exame_id: String,
-  agente_id: String,
-  medico_id: String,
-  descricao: String,
-  image: String
+
+export interface Agente {
+    _id: string;
+    nome: string;
+}
+
+export interface Ppp {
+    _id: string;
+    funcionario_id: string;
+    funcionario: {
+        nome: string;
+    };
+    exame_id: string;
+    exame: {
+        nome: string;
+    };
+    agente_id: string;
+    agente: {
+        nome: string;
+    };
+    medico_id: string;
+    medico: {
+        nome: string;
+    };
+    descricao: string;
+    image: string;
+    createdAt: string;
 }

@@ -3,7 +3,7 @@ import Logo from '../../assets/logo.png';
 import { Container } from './styles';
 import api from '../../services/api';
 import { useHistory } from 'react-router-dom';
-import { Exame } from "../../services/interfaces";
+import { Ppp } from "../../services/interfaces";
 
 
 
@@ -11,11 +11,11 @@ import { Exame } from "../../services/interfaces";
 
 const Profile: React.FC = () => {
     const history = useHistory();
-    const [data, setData] = useState<Exame[]>([]);
+    const [data, setData] = useState<Ppp[]>([]);
 
     const load = async () => {
         await api
-          .get('exames')
+          .get('ppps')
           .then(({ data }) => {
             setData(data.docs)
             console.log(data)
@@ -31,7 +31,7 @@ const Profile: React.FC = () => {
   
       const handleDelete = async (codigo: String) => {
           try {
-              await api.delete(`exames/${codigo}`)
+              await api.delete(`ppps/${codigo}`)
   
               alert('Cadastro deletado com sucesso.')
               load()
@@ -65,22 +65,23 @@ const Profile: React.FC = () => {
 
                            
                                 <li>
-
-                                       <strong>Data da Consulta {p.data}</strong>
-
-                                    <strong>Horario da Consulta:{p.hora} </strong>
                                 
                                     
                                 
-                                    <strong>Nome do Funcionario: {p.Funcionario.nome} </strong>
+                                    <strong>Nome do Funcionario: {p.funcionario.nome} </strong>
                                 
                                   
                                 
-                                    <strong>Nome do Médico: {p.doutor.nome} </strong>
+                                    <strong>Nome do Médico: {p.medico.nome} </strong>
+
+                                    <strong>Nome do Exame: {p.exame.nome} </strong>
+                                    
+                                    <strong>Nome do Agente de Risco: {p.agente.nome} </strong>
+                                    
+                                    <strong>Cadastro: {p.createdAt} </strong>
                                 
                                   
                                 
-                                    <strong>Especialidade: {p.doutor.especialidade}</strong>
 
                                    
                                 </li>

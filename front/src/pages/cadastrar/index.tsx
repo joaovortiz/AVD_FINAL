@@ -2,79 +2,126 @@ import React, { useState, useEffect, ChangeEvent,useCallback, ButtonHTMLAttribut
 import { FiArrowLeft } from 'react-icons/fi';
 import Logo from '../../assets/logo.png';
 import Button from "../../components/Button";
-import Input from '../../components/Input'
+import Input from '../../components/Input';
 import { Container } from './styles';
 import { Form } from '@unform/web';
 import * as Yup from 'yup';
-import { useHistory } from 'react-router-dom';
-import { Doutor, Funcionario, Exame } from "../../services/interfaces";
+import { Medico, Funcionario, Exame, Agente, Ppp } from "../../services/interfaces";
 import api from '../../services/api';
+import { useHistory, useLocation } from 'react-router-dom'
 
 
 const Cadastrar: React.FC = () => {
 
+  const [id] = useState(useLocation().pathname.split('/')[2]);
+  const [image, setImage] = useState('');
   const history = useHistory();
-  const [selectedDoutor, setSelectedDoutor] = useState('');
-  const [selectedPaciente, setSelectedPatient] = useState('');
-  const [doutor, setDoutor] = useState<Doutor[]>([]);
-  const [Funcionario, setPaciente] = useState<Funcionario[]>([]);
+  const [selectedMedico, setSelectedMedico] = useState('');
+  const [medico, setMedico] = useState<Medico[]>([]);
+  const [selectedFuncionario, setSelectedFuncionario] = useState('');
+  const [Funcionario, setFuncionario] = useState<Funcionario[]>([]);
+  const [selectedExame, setSelectedExame] = useState('');
+  const [exame, setExame] = useState<Exame[]>([]);
+  const [selectedAgente, setSelectedAgente] = useState('');
+  const [agente, setAgente] = useState<Agente[]>([]);
+  
+    
+    function handleFile(event: ChangeEvent<HTMLInputElement>) {
+      const files = event.target.files;
+      if (files) {
+        setImage(JSON.stringify(files[0]))
+      }
+    };
 
   const load = async () => {
     await api
-      .get('doutores')
+      .get('medicos')
       .then(({ data }) => {
-        setDoutor(data.docs)
+        setMedico(data.docs)
       })
     await api
-      .get('pacientes')
+      .get('funcionarios')
       .then(({ data }) => {
-        setPaciente(data.docs)
+        setFuncionario(data.docs)
+      })
+    await api
+      .get('exames')
+      .then(({ data }) => {
+        setExame(data.docs)
+      })
+    await api
+      .get('agentes')
+      .then(({ data }) => {
+        setAgente(data.docs)
       })
   }
   useEffect(() => {
     load()}, [])
 
-  function handleSelectDoutor(event: ChangeEvent<HTMLSelectElement>) {
+  function handleSelectMedico(event: ChangeEvent<HTMLSelectElement>) {
     const res = event.target.value;
 
-    setSelectedDoutor(res);
+    setSelectedMedico(res);
   };
 
-  function handleSelectPaciente(event: ChangeEvent<HTMLSelectElement>) {
+  function handleSelectFuncionario(event: ChangeEvent<HTMLSelectElement>) {
     const res = event.target.value;
 
-    setSelectedPatient(res);
+    setSelectedFuncionario(res);
   };
 
-  async function handleSubmit(data: Exame) {
+  function handleSelectExame(event: ChangeEvent<HTMLSelectElement>) {
+    const res = event.target.value;
+
+    setSelectedExame(res);
+  };
+
+  function handleSelectAgente(event: ChangeEvent<HTMLSelectElement>) {
+    const res = event.target.value;
+
+    setSelectedAgente(res);
+  };
+
+  async function handleSubmit(data: Ppp) {
       try {
         const schema = Yup.object().shape({
-          data: Yup.string().required('Data do exame obrigatório'),
-          hora: Yup.string().required('Hora do exame obrigatório'),
         });
 
         await schema.validate(data, {
             abortEarly: false
         });
 
-        if (!selectedDoutor || !selectedPaciente) {
+        if (!selectedMedico || !selectedFuncionario) {
           throw new Error("Médico e Funcionario são obrigatórios");
         }
 
+        // let bodyFormData = new FormData();
+        // bodyFormData.set('medico_id', selectedMedico);
+        // bodyFormData.set('funcionario_id', selectedFuncionario);
+        // bodyFormData.set('descricao', data.descricao);
+        // if (id) bodyFormData.append('_method', 'PUT')
+
         let body = {
-          doutor_id: selectedDoutor,
-          paciente_id: selectedPaciente,
-          data: data.data,
-          hora: data.hora
+          medico_id: selectedMedico,
+          funcionario_id: selectedFuncionario,
+          exame_id: selectedExame,
+          agente_id: selectedAgente,
+          descricao: data.descricao
         }
         
         try {
-            await api({
-                method: 'post',
-                url: 'exames',
-                data: body,
-                headers: {'Content-Type': 'application/json' }
-                })
+          // await api({
+          //     method: id ? 'put' : 'post',
+          //     url: id ? `ppps/${id}` : 'ppps',
+          //     data: bodyFormData,
+          //     headers: {'Content-Type': 'multipart/form-data' }
+          //     })
+          await api({
+            method: 'post',
+            url: 'ppps',
+            data: body,
+            headers: {'Content-Type': 'application/json' }
+            })
 
             alert('Cadastro efetuado com sucesso.')
 
@@ -102,44 +149,80 @@ const Cadastrar: React.FC = () => {
 
         <Form onSubmit={handleSubmit}>
 
+        <div className="row">
+          <div className="col-12">
+            <input type="file" onChange={handleFile} />
+          </div>
+        </div>
 
 
         <select
-            value={selectedDoutor}
-            onChange={handleSelectDoutor}
+            value={selectedMedico}
+            onChange={handleSelectMedico}
           >
             <option>Selecione o Medico</option>
-          {
-            doutor.length > 0
-            ? doutor.map((o) => {
-                return (
-                  <option key={o._id} value={o._id}>{o.nome} - {o.especialidade}</option>
-                )
-              })
-            : <option>Nenhum Medico encontrado</option>
-          }
-          </select>
+            {
+              medico.length > 0
+              ? medico.map((o) => {
+                  return (
+                    <option key={o._id} value={o._id}>{o.nome}</option>
+                  )
+                })
+              : <option>Nenhum Medico encontrado</option>
+            }
+        </select>
            
-           <select
-              value={selectedPaciente}
-              onChange={handleSelectPaciente}
-            >
-            <option>Selecione o Funcionario</option>
-            
-          {
-            Funcionario.length > 0
-            ? Funcionario.map((o) => {
-                return (
-                  <option key={o._id} value={o._id}>{o.nome}</option>
-                )
-              })
-            : <option>Nenhum Funcionario encontrado</option>
-          }
-          
-          </select>
-          <br></br>
-          <Input name="data" type="date" placeholder="Data do Exame" />
-          <Input name="hora" type="time" placeholder="Hora do Exame" />
+        <select
+          value={selectedFuncionario}
+          onChange={handleSelectFuncionario}
+        >
+        <option>Selecione o Funcionario</option>
+        
+      {
+        Funcionario.length > 0
+        ? Funcionario.map((o) => {
+            return (
+              <option key={o._id} value={o._id}>{o.nome}</option>
+            )
+          })
+        : <option>Nenhum Funcionario encontrado</option>
+      }
+      
+        </select>
+        
+        <select
+            value={selectedExame}
+            onChange={handleSelectExame}
+          >
+            <option>Selecione o Exame</option>
+            {
+              exame.length > 0
+              ? exame.map((o) => {
+                  return (
+                    <option key={o._id} value={o._id}>{o.nome}</option>
+                  )
+                })
+              : <option>Nenhum Exame encontrado</option>
+            }
+        </select>
+        
+        <select
+            value={selectedAgente}
+            onChange={handleSelectAgente}
+          >
+            <option>Selecione o Agente</option>
+            {
+              agente.length > 0
+              ? agente.map((o) => {
+                  return (
+                    <option key={o._id} value={o._id}>{o.nome}</option>
+                  )
+                })
+              : <option>Nenhum Agente encontrado</option>
+            }
+        </select>
+        <br></br>
+        <Input name="descricao" placeholder="Descricao" />
 
 
 
@@ -153,159 +236,3 @@ const Cadastrar: React.FC = () => {
 }
 
 export default Cadastrar;
-
-
-
-
-
-
-import React, { useState, useEffect } from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
-import api from '../services/api'
-
-function Livro() {
-    const [id] = useState(useLocation().pathname.split('/')[2])
-    const [image] = useState(React.createRef())
-    const [nomeLivro, setNomeLivro] = useState('')
-    const [author, setAuthor] = useState('')
-    const [numeroPaginas, setNumeroPaginas] = useState('')
-    const [editora, setEditora] = useState('')
-    const [isbn, setIsbn] = useState('')
-
-    const history = useHistory()
-
-    async function handleRegister(e) {
-        e.preventDefault()
-
-        let bodyFormData = new FormData();
-        bodyFormData.set('nomeLivro', nomeLivro);
-        bodyFormData.set('author', author);
-        bodyFormData.set('numeroPaginas', numeroPaginas);
-        bodyFormData.set('editora', editora);
-        bodyFormData.set('isbn', isbn);
-        if (image.current.files[0]) bodyFormData.append('image', image.current.files[0]);
-        if (id) bodyFormData.append('_method', 'PUT')
-
-        try {
-            await api({
-                method: id ? 'put' : 'post',
-                url: id ? `livros/${id}` : 'livros',
-                data: bodyFormData,
-                headers: {'Content-Type': 'multipart/form-data' }
-                })
-
-            alert('Cadastro efetuado com sucesso.')
-
-            history.push('/listalivro')
-        } catch (err) {
-            alert('Erro ao cadastrar seus dados.')
-        }
-    }
-    
-    const load = async () => {
-        if (id) {  
-            await api
-            .get(`livros/${id}`)
-            .then(({ data }) => {
-                setNomeLivro(data.nomeLivro)
-                setAuthor(data.author)
-                setNumeroPaginas(data.numeroPaginas)
-                setEditora(data.editora)
-                setIsbn(data.isbn)
-            })
-        }
-    }
-    useEffect(() => {
-      load()}, [id])
-
-    return (
-        <>
-            <div className="layout-padding">
-                <div className="row">
-                    <div className="col-12">
-                        <h1>Cadastro de Livros</h1>
-                    </div>
-                </div>
-
-                <div>
-                    <div>
-                        <form onSubmit={handleRegister}>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        type="file"
-                                        placeholder="Imagem do Livro"
-                                        ref={image}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        placeholder="Nome do Livro"
-                                        value={nomeLivro}
-                                        onChange={e => setNomeLivro(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        placeholder="Autor do Livro"
-                                        value={author}
-                                        onChange={e => setAuthor(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        type="number"
-                                        placeholder="Número de Páginas"
-                                        value={numeroPaginas}
-                                        onChange={e => setNumeroPaginas(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        placeholder="Editora"
-                                        value={editora}
-                                        onChange={e => setEditora(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <input
-                                        className="full-width"
-                                        placeholder="ISBN"
-                                        value={isbn}
-                                        onChange={e => setIsbn(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12">
-                                <button
-                                    className="full-width button primary"
-                                    type="submit">
-                                    Cadastrar
-                                </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
-
-export default Livro
