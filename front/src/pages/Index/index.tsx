@@ -79,7 +79,8 @@ const Profile: React.FC = () => {
                                     <strong>Nome do Agente de Risco: {p.agente.nome} </strong>
                                     
                                     <strong>Cadastro: {p.createdAt} </strong>
-                                
+
+                                    <strong>Descrição: {p.descricao} </strong>
                                   
                                 
 
